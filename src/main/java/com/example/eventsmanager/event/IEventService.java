@@ -2,21 +2,21 @@ package com.example.eventsmanager.event;
 
 
 import com.example.eventsmanager.user.UserDto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface IEventService {
     List<EventDto> getAll();
 
-    EventDto createEvent(EventDto event);
+    EventDto addEvent(EventDto event, MultipartFile file);
 
-    EventDto updateEvent(EventDto event);
+    EventDto updateEvent(EventDto event, MultipartFile file);
 
     void deleteEvent(Long eventId);
 
-    void addParticipant(Long eventId, UserDto user);
-
-    void removeParticipant(Long eventId, UserDto user);
+    void registerUserForEvent(Long userId, Long eventId);
+    void unregisterUserFromEvent(Long userId, Long eventId);
 
     List<EventDto> findAllByOrganiserId(Long organiserId);
 

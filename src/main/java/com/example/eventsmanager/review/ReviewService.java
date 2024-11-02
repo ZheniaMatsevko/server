@@ -1,16 +1,14 @@
 package com.example.eventsmanager.review;
 
-import com.example.eventsmanager.event.DeletedEventEvent;
-import com.example.eventsmanager.user.DeletedUserEvent;
+import com.example.eventsmanager.event.EventDto;
+import com.example.eventsmanager.event.EventEntity;
+import com.example.eventsmanager.event.IEventMapper;
+import com.example.eventsmanager.event.IEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -18,61 +16,37 @@ import java.util.stream.Collectors;
 public class ReviewService implements IReviewService {
 
     private final IReviewRepository reviewRepository;
-
-    private final ApplicationEventPublisher eventPublisher;
-
+    private final IEventRepository eventRepository;
     @Override
-    public ReviewResponseDto getReviewById(Long reviewId) {
-        ReviewEntity review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ReviewNotFoundException("Review not found with ID: " + reviewId));
-        return IReviewMapper.INSTANCE.entityToResponseDto(review);
-    }
-
-    @Override
-    public void deleteReviewById(Long reviewId) {
-        if (reviewRepository.existsById(reviewId)) {
-            reviewRepository.deleteById(reviewId);
-            log.info("Review with ID: {} has been deleted successfully", reviewId);
+    public ReviewDto addReview(ReviewDto reviewDto, Long eventId) {
+        Optional<EventEntity> optional = eventRepository.findById(eventId);
+        if (optional.isPresent()) {
+            EventEntity event = optional.get();
+            ReviewEntity reviewEntity = IReviewMapper.INSTANCE.dtoToEntity(reviewDto);
+            event.getReviews().add(reviewEntity);
+            eventRepository.save(event);
+            log.info("Added review to event with ID: {}", eventId);
+            // Set the generated ID to the ReviewDto and return it
+            reviewDto.setId(reviewEntity.getId());
+            return reviewDto;
         } else {
-            log.warn("Review not found for deletion with ID: {}", reviewId);
+            log.warn("Event not found for adding review to event with ID: {}", eventId);
+            throw new IllegalArgumentException("event not found with ID: " + eventId);
         }
     }
 
     @Override
-    @Transactional
-    public ReviewResponseDto createReview(CreateReviewRequestDto reviewRequestDto) {
-        ReviewEntity savedReview = reviewRepository.save(IReviewMapper.INSTANCE.createRequestDtoToToEntity(reviewRequestDto));
-        log.info("Review with ID: {} has been created successfully", savedReview.getId());
-
-
-        return IReviewMapper.INSTANCE.entityToResponseDto(savedReview);
-    }
-
-    @Override
-    public List<ReviewResponseDto> getAllReviews() {
-        List<ReviewEntity> reviews = reviewRepository.findAll();
-        return reviews.stream()
-                .map(IReviewMapper.INSTANCE::entityToResponseDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ReviewResponseDto> getAllReviewsByAuthorId(Long authorId) {
-        List<ReviewEntity> reviews = reviewRepository.findAllByAuthorId(authorId);
-        return reviews.stream()
-                .map(IReviewMapper.INSTANCE::entityToResponseDto)
-                .collect(Collectors.toList());
-    }
-
-    @EventListener
-    public void onDeletedUserEvent(DeletedUserEvent event) {
-        List<ReviewEntity> reviewEntities = reviewRepository.findAllByAuthorId(event.getUserId());
-        reviewRepository.deleteAll(reviewEntities);
-    }
-
-    @EventListener
-    public void onDeletedEventEvent(DeletedEventEvent event) {
-        List<ReviewEntity> reviewEntities = reviewRepository.findAllByEventId(event.getEventId());
-        reviewRepository.deleteAll(reviewEntities);
+    public EventDto removeReview(Long reviewId, Long eventId) {
+        Optional<EventEntity> optional = eventRepository.findById(eventId);
+        if (optional.isPresent()) {
+            EventEntity event  = optional.get();
+            event.getReviews().remove(reviewRepository.findById(reviewId).orElse(null));
+            eventRepository.save(event);
+            log.info("Removed review from event with ID: {}", event);
+            return IEventMapper.INSTANCE.entityToDto(event);
+        } else {
+            log.warn("Event not found for removing review to event with ID: {}", eventId);
+            throw new IllegalArgumentException("Event not found with ID: " + eventId);
+        }
     }
 }

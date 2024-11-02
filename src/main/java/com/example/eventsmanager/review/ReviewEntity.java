@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Data
@@ -19,9 +21,7 @@ public class ReviewEntity {
     private Long id;
 
     @ManyToOne
-    private EventEntity event;
-
-    @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private UserEntity author;
 
     private int rating;

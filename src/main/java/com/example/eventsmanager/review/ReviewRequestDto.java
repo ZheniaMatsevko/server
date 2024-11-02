@@ -2,6 +2,7 @@ package com.example.eventsmanager.review;
 
 import com.example.eventsmanager.event.EventDto;
 import com.example.eventsmanager.user.UserDto;
+import com.example.eventsmanager.user.UserRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,10 +10,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewResponseDto {
+public class ReviewRequestDto {
     private Long id;
-    private UserDto author;
-    private EventDto event;
+    private UserRequestDto author;
     private int rating;
     private String comment;
 }

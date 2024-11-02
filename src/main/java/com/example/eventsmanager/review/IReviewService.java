@@ -1,11 +1,10 @@
 package com.example.eventsmanager.review;
 
+import com.example.eventsmanager.event.EventDto;
+
 import java.util.List;
 
 public interface IReviewService {
-    ReviewResponseDto getReviewById(Long reviewId);
-    void deleteReviewById(Long reviewId);
-    ReviewResponseDto createReview(CreateReviewRequestDto reviewRequestDto);
-    List<ReviewResponseDto> getAllReviews();
-    List<ReviewResponseDto> getAllReviewsByAuthorId(Long authorId);
+    ReviewDto addReview(ReviewDto reviewDto, Long eventId);
+    EventDto removeReview(Long reviewId, Long eventId);
 }

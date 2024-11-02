@@ -1,14 +1,24 @@
 package com.example.eventsmanager.event;
 
+import com.example.eventsmanager.exceptions.ExceptionHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -19,14 +29,57 @@ public class EventController {
 
     private final EventService eventService;
 
-    @PostMapping()
-    public EventRequestDto createEvent(@RequestBody @Valid EventRequestDto event, BindingResult bindingResult) {
+    @PostMapping
+    public EventRequestDto createEvent(@RequestPart(value = "file", required = false) MultipartFile file,
+                                       @RequestPart("event") @Valid String eventJson, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new ValidationException(bindingResult.getAllErrors().toString());
+            String message = ExceptionHelper.formErrorMessage(bindingResult);
+            throw new ValidationException(message);
         }
-        EventDto createdEvent = eventService.createEvent(IEventMapper.INSTANCE.requestDtoToDto(event));
-        log.info("Event created with ID: {}", createdEvent.getId());
-        return IEventMapper.INSTANCE.dtoToRequestDto(createdEvent);
+        try {
+            EventRequestDto eventDto = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(eventJson, EventRequestDto.class);
+            Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+            Set<ConstraintViolation<EventRequestDto>> violations = validator.validate(eventDto);
+
+            if (!violations.isEmpty()) {
+                String message = ExceptionHelper.formErrorMessage(violations);
+                throw new javax.validation.ValidationException(message);
+            }else{
+                log.info("Creating an event with ID: {}", eventDto.getId());
+                EventDto createdEvent = eventService.addEvent(IEventMapper.INSTANCE.requestDtoToDto(eventDto),file);
+                log.info("Event created with ID: {}", createdEvent.getId());
+                return IEventMapper.INSTANCE.dtoToRequestDto(createdEvent);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public EventRequestDto updateEvent(@PathVariable Long id,@RequestPart(value = "file", required = false) MultipartFile file,
+                                       @RequestPart("event") @Valid String eventJson, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            String message = ExceptionHelper.formErrorMessage(bindingResult);
+            throw new ValidationException(message);
+        }
+        try {
+            EventRequestDto eventDto = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(eventJson, EventRequestDto.class);
+            Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+            Set<ConstraintViolation<EventRequestDto>> violations = validator.validate(eventDto);
+
+            if (!violations.isEmpty()) {
+                String message = ExceptionHelper.formErrorMessage(violations);
+                throw new javax.validation.ValidationException(message);
+            }else{
+                log.info("Editing event with ID: {}", id);
+                eventDto.setId(id);
+                EventDto editedEvent = eventService.updateEvent(IEventMapper.INSTANCE.requestDtoToDto(eventDto),file);
+                log.info("Event edited with ID: {}", editedEvent.getId());
+                return IEventMapper.INSTANCE.dtoToRequestDto(editedEvent);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -59,5 +112,25 @@ public class EventController {
     public List<EventRequestDto> getAll() {
         log.info("Getting all events");
         return eventService.getAll().stream().map(IEventMapper.INSTANCE::dtoToRequestDto).collect(Collectors.toList());
+    }
+
+    @PutMapping("/{eventId}/register/{userId}")
+    public ResponseEntity<String> registerUserForEvent(@PathVariable Long userId, @PathVariable Long eventId) {
+        try {
+            eventService.registerUserForEvent(userId, eventId);
+            return ResponseEntity.ok("User registered for the event successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to register user for the event.");
+        }
+    }
+
+    @PutMapping("/{eventId}/unregister/{userId}")
+    public ResponseEntity<String> unregisterUserFromEvent(@PathVariable Long userId, @PathVariable Long eventId) {
+        try {
+            eventService.unregisterUserFromEvent(userId, eventId);
+            return ResponseEntity.ok("User unregistered from the event successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to unregister user from the event.");
+        }
     }
 }

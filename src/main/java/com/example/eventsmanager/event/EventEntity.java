@@ -1,5 +1,6 @@
 package com.example.eventsmanager.event;
 
+import com.example.eventsmanager.review.ReviewEntity;
 import com.example.eventsmanager.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,8 +32,12 @@ public class EventEntity {
     @Column(nullable = false)
     private float price;
 
-    private int capacity;
+    @EqualsAndHashCode.Exclude
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<ReviewEntity> reviews;
 
+    private int capacity;
+    private String imageUrl;
     private String description;
 
     private boolean online;

@@ -8,6 +8,4 @@ import java.util.List;
 @Repository
 public interface IReviewRepository extends JpaRepository<ReviewEntity, Long> {
     List<ReviewEntity> findAllByAuthorId(Long authorId);
-
-    List<ReviewEntity> findAllByEventId(Long eventId);
 }
