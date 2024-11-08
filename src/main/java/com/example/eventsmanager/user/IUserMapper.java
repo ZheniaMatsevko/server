@@ -10,8 +10,4 @@ public interface IUserMapper {
     UserDto entityToDto(UserEntity userEntity);
 
     UserEntity dtoToEntity(UserDto userDto);
-
-    UserRequestDto dtoToRequestDto(UserDto userDto);
-
-    UserDto requestDtoToDto(UserRequestDto userRequestDto);
 }

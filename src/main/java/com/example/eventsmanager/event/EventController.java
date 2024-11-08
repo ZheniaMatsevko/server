@@ -30,23 +30,22 @@ public class EventController {
     private final EventService eventService;
 
     @PostMapping("/new")
-    public EventRequestDto createEvent(@RequestPart(value = "file", required = false) MultipartFile file,
+    public EventDto createEvent(@RequestPart(value = "file", required = false) MultipartFile file,
                                        @RequestPart("event") @Valid String eventJson, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String message = ExceptionHelper.formErrorMessage(bindingResult);
             throw new ValidationException(message);
         }
         try {
-            EventRequestDto eventDto = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(eventJson, EventRequestDto.class);
+            EventDto eventDto = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(eventJson, EventDto.class);
             Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-            Set<ConstraintViolation<EventRequestDto>> violations = validator.validate(eventDto);
+            Set<ConstraintViolation<EventDto>> violations = validator.validate(eventDto);
 
             if (!violations.isEmpty()) {
                 String message = ExceptionHelper.formErrorMessage(violations);
                 throw new javax.validation.ValidationException(message);
             }else{
-                EventDto createdEvent = eventService.addEvent(IEventMapper.INSTANCE.requestDtoToDto(eventDto),file);
-                return IEventMapper.INSTANCE.dtoToRequestDto(createdEvent);
+                return eventService.addEvent(eventDto,file);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -54,24 +53,23 @@ public class EventController {
     }
 
     @PutMapping("/{id}")
-    public EventRequestDto updateEvent(@PathVariable Long id,@RequestPart(value = "file", required = false) MultipartFile file,
+    public EventDto updateEvent(@PathVariable Long id,@RequestPart(value = "file", required = false) MultipartFile file,
                                        @RequestPart("event") @Valid String eventJson, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String message = ExceptionHelper.formErrorMessage(bindingResult);
             throw new ValidationException(message);
         }
         try {
-            EventRequestDto eventDto = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(eventJson, EventRequestDto.class);
+            EventDto eventDto = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(eventJson, EventDto.class);
             Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-            Set<ConstraintViolation<EventRequestDto>> violations = validator.validate(eventDto);
+            Set<ConstraintViolation<EventDto>> violations = validator.validate(eventDto);
 
             if (!violations.isEmpty()) {
                 String message = ExceptionHelper.formErrorMessage(violations);
                 throw new javax.validation.ValidationException(message);
             }else{
                 eventDto.setId(id);
-                EventDto editedEvent = eventService.updateEvent(IEventMapper.INSTANCE.requestDtoToDto(eventDto),file);
-                return IEventMapper.INSTANCE.dtoToRequestDto(editedEvent);
+                return eventService.updateEvent(eventDto,file);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -87,27 +85,27 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}")
-    public EventRequestDto getEventById(@PathVariable Long eventId) {
+    public EventDto getEventById(@PathVariable Long eventId) {
         log.info("Retrieving event with ID: {}", eventId);
-        return IEventMapper.INSTANCE.dtoToRequestDto(eventService.getEventById(eventId));
+        return eventService.getEventById(eventId);
     }
 
     @GetMapping("/organiser/{id}")
-    public List<EventRequestDto> getAllByOrganiserId(@PathVariable Long id) {
+    public List<EventDto> getAllByOrganiserId(@PathVariable Long id) {
         log.info("Getting all events by organiser id");
-        return eventService.findAllByOrganiserId(id).stream().map(IEventMapper.INSTANCE::dtoToRequestDto).collect(Collectors.toList());
+        return eventService.findAllByOrganiserId(id);
     }
 
     @GetMapping("/participant/{id}")
-    public List<EventRequestDto> getAllByParticipantId(@PathVariable Long id) {
+    public List<EventDto> getAllByParticipantId(@PathVariable Long id) {
         log.info("Getting all events by participant id");
-        return eventService.findAllForParticipantById(id).stream().map(IEventMapper.INSTANCE::dtoToRequestDto).collect(Collectors.toList());
+        return eventService.findAllForParticipantById(id);
     }
 
     @GetMapping
-    public List<EventRequestDto> getAll() {
+    public List<EventDto> getAll() {
         log.info("Getting all events");
-        return eventService.getAll().stream().map(IEventMapper.INSTANCE::dtoToRequestDto).collect(Collectors.toList());
+        return eventService.getAll();
     }
 
     @PutMapping("/{eventId}/register/{userId}")

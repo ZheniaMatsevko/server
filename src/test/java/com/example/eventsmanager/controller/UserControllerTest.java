@@ -3,7 +3,7 @@ package com.example.eventsmanager.controller;
 import com.example.eventsmanager.security.auth.jwt.JwtAuthenticationFilter;
 import com.example.eventsmanager.security.auth.jwt.JwtService;
 import com.example.eventsmanager.user.*;
-import com.example.eventsmanager.utils.ChangePasswordRequestDto;
+import com.example.eventsmanager.user.changePassword.ChangePasswordDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ public class UserControllerTest {
     @Test
     @WithMockUser(username = USER_USERNAME)
     public void testCreateUser_ShouldReturn200() throws Exception {
-        UserRequestDto userDto = createUserRequestDto();
+        UserDto userDto = createUserDto();
         String userJson = objectMapper.writeValueAsString(userDto);
 
         MockMultipartFile mockFile = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[0]);
@@ -118,10 +118,10 @@ public class UserControllerTest {
     @Test
     @WithMockUser(username = USER_USERNAME)
     public void testGetUserById_ShouldReturn200() throws Exception {
-        UserRequestDto userDto = createUserRequestDto();
+        UserDto userDto = createUserDto();
         userDto.setId(1L);
 
-        when(userService.getUserById(userDto.getId())).thenReturn(IUserMapper.INSTANCE.requestDtoToDto(userDto));
+        when(userService.getUserById(userDto.getId())).thenReturn(userDto);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/users/{userId}", 1L)
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
@@ -131,7 +131,7 @@ public class UserControllerTest {
     @Test
     @WithMockUser(username = USER_USERNAME)
     public void testChangePassword_ShouldReturn200() throws Exception {
-        ChangePasswordRequestDto changePasswordRequestDto = new ChangePasswordRequestDto(1L, "Password1", "Password2");
+        ChangePasswordDto changePasswordRequestDto = new ChangePasswordDto(1L, "Password1", "Password2");
         String jsonRequest = objectMapper.writeValueAsString(changePasswordRequestDto);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/users/password")
@@ -145,7 +145,7 @@ public class UserControllerTest {
     @Test
     @WithMockUser(username = USER_USERNAME)
     public void testChangePassword_InvalidPassword_ShouldReturn500() throws Exception {
-        ChangePasswordRequestDto changePasswordRequestDto = new ChangePasswordRequestDto(1L, "oldPassword", "newPassword");
+        ChangePasswordDto changePasswordRequestDto = new ChangePasswordDto(1L, "oldPassword", "newPassword");
         String jsonRequest = objectMapper.writeValueAsString(changePasswordRequestDto);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/users/password")
@@ -156,8 +156,8 @@ public class UserControllerTest {
     }
 
     // Helper method to create a sample UserRequestDto
-    private UserRequestDto createUserRequestDto() {
-        UserRequestDto userRequestDto = new UserRequestDto();
+    private UserDto createUserDto() {
+        UserDto userRequestDto = new UserDto();
         userRequestDto.setUsername("test_user");
         userRequestDto.setEmail("user@example.com");
         userRequestDto.setPassword("password123");

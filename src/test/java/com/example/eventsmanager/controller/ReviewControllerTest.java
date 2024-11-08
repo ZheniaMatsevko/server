@@ -2,11 +2,11 @@ package com.example.eventsmanager.controller;
 
 import com.example.eventsmanager.event.EventDto;
 import com.example.eventsmanager.review.ReviewController;
-import com.example.eventsmanager.review.ReviewRequestDto;
+import com.example.eventsmanager.review.ReviewDto;
 import com.example.eventsmanager.review.ReviewService;
 import com.example.eventsmanager.security.auth.jwt.JwtAuthenticationFilter;
 import com.example.eventsmanager.security.auth.jwt.JwtService;
-import com.example.eventsmanager.user.UserRequestDto;
+import com.example.eventsmanager.user.UserDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ public class ReviewControllerTest {
     @Test
     @WithMockUser(username = USER_USERNAME)
     public void testAddReview_ShouldReturn200() throws Exception {
-        ReviewRequestDto reviewRequestDto = new ReviewRequestDto(1L, new UserRequestDto(), 2, "comment");
+        ReviewDto reviewRequestDto = new ReviewDto(1L, new UserDto(), 2, "comment");
         String jsonRequest = objectMapper.writeValueAsString(reviewRequestDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/reviews/{eventId}", 1L)

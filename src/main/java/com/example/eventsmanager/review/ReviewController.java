@@ -25,15 +25,14 @@ public class ReviewController {
     }
 
     @PostMapping("/{eventId}")
-    public ReviewRequestDto addReview(@PathVariable Long eventId, @RequestBody @Valid ReviewRequestDto reviewRequestDto, BindingResult bindingResult) {
+    public ReviewDto addReview(@PathVariable Long eventId, @RequestBody @Valid ReviewDto reviewRequestDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String message = ExceptionHelper.formErrorMessage(bindingResult);
             throw new ValidationException(message);
         }
-        ReviewDto reviewDto = reviewService.addReview(IReviewMapper.INSTANCE.requestDtoToDto(reviewRequestDto),eventId);
+        ReviewDto reviewDto = reviewService.addReview(reviewRequestDto,eventId);
         log.info("Reviews added to event with ID: {}", eventId);
-        return IReviewMapper.INSTANCE.dtoToRequestDto(reviewDto);
-
+        return reviewDto;
     }
 
     @DeleteMapping("/{reviewId}/{eventId}")

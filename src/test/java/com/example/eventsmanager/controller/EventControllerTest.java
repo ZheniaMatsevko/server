@@ -1,11 +1,11 @@
 package com.example.eventsmanager.controller;
 
 import com.example.eventsmanager.event.EventController;
-import com.example.eventsmanager.event.EventRequestDto;
+import com.example.eventsmanager.event.EventDto;
 import com.example.eventsmanager.event.EventService;
 import com.example.eventsmanager.security.auth.jwt.JwtAuthenticationFilter;
 import com.example.eventsmanager.security.auth.jwt.JwtService;
-import com.example.eventsmanager.user.UserRequestDto;
+import com.example.eventsmanager.user.UserDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,7 +113,7 @@ public class EventControllerTest {
     @Test
     @WithMockUser(username = USER_USERNAME)
     public void testCreateEvent_shouldReturn200() throws Exception {
-        EventRequestDto eventDto = createEventRequestDto();
+        EventDto eventDto = createEventDto();
         String eventJson = objectMapper.writeValueAsString(eventDto);
 
         MockMultipartFile mockFile = new MockMultipartFile("file", "", "application/json", new byte[0]);
@@ -130,7 +130,7 @@ public class EventControllerTest {
     @Test
     @WithMockUser(username = USER_USERNAME)
     public void testUpdateEvent_shouldReturn200() throws Exception {
-        EventRequestDto eventDto = createEventRequestDto();
+        EventDto eventDto = createEventDto();
         String eventJson = objectMapper.writeValueAsString(eventDto);
 
         MockMultipartFile mockFile = new MockMultipartFile("file", "test.png", "image/png", new byte[0]);
@@ -216,14 +216,14 @@ public class EventControllerTest {
 
         verify(eventService).unregisterUserFromEvent(userId, eventId);
     }
-    private EventRequestDto createEventRequestDto() {
-        EventRequestDto eventRequestDto = new EventRequestDto();
+    private EventDto createEventDto() {
+        EventDto eventRequestDto = new EventDto();
         eventRequestDto.setCaption("Sample Event Caption");
         eventRequestDto.setDateTime(LocalDateTime.of(2024, 12, 12, 10, 0));
         eventRequestDto.setPrice(10.0f);
         eventRequestDto.setCapacity(100);
         eventRequestDto.setDescription("Sample description");
-        eventRequestDto.setOrganiser(new UserRequestDto(1L, "username", "password123", "user@example.com", "Firstname", "Lastname", "http://example.com/profile.jpg"));
+        eventRequestDto.setOrganiser(new UserDto(1L, "username", "password123", "user@example.com", "Firstname", "Lastname", "http://example.com/profile.jpg"));
 
         return eventRequestDto;
     }

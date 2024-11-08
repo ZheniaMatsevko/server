@@ -1,4 +1,4 @@
-package com.example.eventsmanager.utils;
+package com.example.eventsmanager.user.changePassword;
 
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
@@ -7,10 +7,11 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class ChangePasswordRequestDto {
+@EqualsAndHashCode
+public class ChangePasswordDto {
     private Long id;
     private String oldPassword;
+
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$", message = "Password need to be minimum eight characters, at least one uppercase letter, one lowercase letter and one number")
     private String newPassword;
 }

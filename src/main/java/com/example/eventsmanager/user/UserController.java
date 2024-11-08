@@ -2,8 +2,7 @@ package com.example.eventsmanager.user;
 
 import com.example.eventsmanager.exceptions.ExceptionHelper;
 import com.example.eventsmanager.exceptions.InvalidOldPasswordException;
-import com.example.eventsmanager.utils.ChangePasswordRequestDto;
-import com.example.eventsmanager.utils.IChangePasswordMapper;
+import com.example.eventsmanager.user.changePassword.ChangePasswordDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,7 +33,7 @@ public class UserController {
     }
 
     @PostMapping("/new")
-    public UserRequestDto createUser(@RequestPart(value = "file", required = false) MultipartFile file,
+    public UserDto createUser(@RequestPart(value = "file", required = false) MultipartFile file,
                                              @RequestPart("user") @Valid String userJson, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String message = ExceptionHelper.formErrorMessage(bindingResult);
@@ -42,16 +41,15 @@ public class UserController {
         }
 
         try {
-            UserRequestDto userDto = new ObjectMapper().readValue(userJson, UserRequestDto.class);
+            UserDto userDto = new ObjectMapper().readValue(userJson, UserDto.class);
             Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-            Set<ConstraintViolation<UserRequestDto>> violations = validator.validate(userDto);
+            Set<ConstraintViolation<UserDto>> violations = validator.validate(userDto);
 
             if (!violations.isEmpty()) {
                 String message = ExceptionHelper.formErrorMessage(violations);
                 throw new javax.validation.ValidationException(message);
             }else{
-                UserDto createdUser = userService.createUser(IUserMapper.INSTANCE.requestDtoToDto(userDto),file);
-                return IUserMapper.INSTANCE.dtoToRequestDto(createdUser);
+                return userService.createUser(userDto,file);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -60,24 +58,23 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public UserRequestDto updateUser(@PathVariable Long id,@RequestPart(value = "file", required = false) MultipartFile file,
+    public UserDto updateUser(@PathVariable Long id,@RequestPart(value = "file", required = false) MultipartFile file,
                                      @RequestPart("user") @Valid String userJson, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String message = ExceptionHelper.formErrorMessage(bindingResult);
             throw new ValidationException(message);
         }
         try {
-            UserUpdateDto userUpdateRequestDto = new ObjectMapper().readValue(userJson, UserUpdateDto.class);
+            UserUpdateDto userUpdateDto = new ObjectMapper().readValue(userJson, UserUpdateDto.class);
             Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-            Set<ConstraintViolation<UserUpdateDto>> violations = validator.validate(userUpdateRequestDto);
+            Set<ConstraintViolation<UserUpdateDto>> violations = validator.validate(userUpdateDto);
 
             if (!violations.isEmpty()) {
                 String message = ExceptionHelper.formErrorMessage(violations);
                 throw new javax.validation.ValidationException(message);
             }else{
-                userUpdateRequestDto.setId(id);
-                UserDto createdUser = userService.updateUser(userUpdateRequestDto,file);
-                return IUserMapper.INSTANCE.dtoToRequestDto(createdUser);
+                userUpdateDto.setId(id);
+                return userService.updateUser(userUpdateDto,file);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -92,15 +89,15 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public UserRequestDto getUserById(@PathVariable Long userId) {
+    public UserDto getUserById(@PathVariable Long userId) {
         log.info("Retrieving user with ID: {}", userId);
-        return IUserMapper.INSTANCE.dtoToRequestDto(userService.getUserById(userId));
+        return userService.getUserById(userId);
     }
 
     @PutMapping("/password")
-    public ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordRequestDto request) {
+    public ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordDto request) {
         try {
-            userService.changePassword(IChangePasswordMapper.INSTANCE.requestDtoToDto(request));
+            userService.changePassword(request);
             return ResponseEntity.ok("The password was changed successfully");
         } catch (EntityNotFoundException e) {
             e.printStackTrace();

@@ -2,7 +2,7 @@ package com.example.eventsmanager.service;
 
 import com.example.eventsmanager.exceptions.InvalidOldPasswordException;
 import com.example.eventsmanager.user.*;
-import com.example.eventsmanager.utils.ChangePasswordDto;
+import com.example.eventsmanager.user.changePassword.ChangePasswordDto;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

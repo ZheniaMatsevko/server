@@ -8,6 +8,4 @@ public interface IReviewMapper {
     IReviewMapper INSTANCE = Mappers.getMapper(IReviewMapper.class);
     ReviewDto entityToDto(ReviewEntity reviewEntity);
     ReviewEntity dtoToEntity(ReviewDto reviewDto);
-    ReviewRequestDto dtoToRequestDto(ReviewDto reviewDto);
-    ReviewDto requestDtoToDto(ReviewRequestDto reviewRequestDto);
 }

@@ -2,7 +2,7 @@ package com.example.eventsmanager.user;
 
 import com.example.eventsmanager.exceptions.InvalidOldPasswordException;
 import com.example.eventsmanager.exceptions.InvalidUserDataException;
-import com.example.eventsmanager.utils.ChangePasswordDto;
+import com.example.eventsmanager.user.changePassword.ChangePasswordDto;
 import com.example.eventsmanager.utils.ImagesManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
