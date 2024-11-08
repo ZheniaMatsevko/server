@@ -1,11 +1,9 @@
 package com.example.eventsmanager.event;
 
+import com.example.eventsmanager.event.address.AddressDto;
 import com.example.eventsmanager.review.ReviewDto;
 import com.example.eventsmanager.user.UserDto;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,15 +17,17 @@ public class EventDto {
     private String caption;
     private LocalDateTime dateTime;
     private float price;
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<UserDto> participants;
     private String description;
     private String imageUrl;
     private boolean online;
     private int capacity;
-    private String address;
+    private AddressDto address;
     private UserDto organiser;
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<ReviewDto> reviews;
 
 }

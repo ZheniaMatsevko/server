@@ -5,10 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -46,10 +43,14 @@ public class UserEntity {
     @Column(nullable = false, length = 50)
     private String lastname;
 
+    private String profileImageUrl;
+
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToMany(mappedBy = "participants", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     private List<EventEntity> bookedEvents;
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "organiser")
     private List<EventEntity> organisedEvents;
     @PreRemove

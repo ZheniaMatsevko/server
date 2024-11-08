@@ -22,7 +22,8 @@ public class ReviewService implements IReviewService {
         Optional<EventEntity> optional = eventRepository.findById(eventId);
         if (optional.isPresent()) {
             EventEntity event = optional.get();
-            ReviewEntity reviewEntity = IReviewMapper.INSTANCE.dtoToEntity(reviewDto);
+            ReviewEntity reviewEntity = reviewRepository.save(IReviewMapper.INSTANCE.dtoToEntity(reviewDto));
+
             event.getReviews().add(reviewEntity);
             eventRepository.save(event);
             log.info("Added review to event with ID: {}", eventId);
@@ -40,8 +41,11 @@ public class ReviewService implements IReviewService {
         Optional<EventEntity> optional = eventRepository.findById(eventId);
         if (optional.isPresent()) {
             EventEntity event  = optional.get();
+            log.info("Removing from array");
             event.getReviews().remove(reviewRepository.findById(reviewId).orElse(null));
             eventRepository.save(event);
+
+            reviewRepository.deleteById(reviewId);
             log.info("Removed review from event with ID: {}", event);
             return IEventMapper.INSTANCE.entityToDto(event);
         } else {

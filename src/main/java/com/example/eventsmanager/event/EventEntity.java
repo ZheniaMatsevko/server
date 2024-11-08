@@ -1,12 +1,10 @@
 package com.example.eventsmanager.event;
 
+import com.example.eventsmanager.event.address.AddressEntity;
 import com.example.eventsmanager.review.ReviewEntity;
 import com.example.eventsmanager.user.UserEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,12 +25,14 @@ public class EventEntity {
     @Column(nullable = false)
     private LocalDateTime dateTime;
 
-    private String address;
+    @Embedded
+    private AddressEntity address;
 
     @Column(nullable = false)
     private float price;
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<ReviewEntity> reviews;
 
@@ -42,6 +42,7 @@ public class EventEntity {
 
     private boolean online;
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "event_participants",
             joinColumns = @JoinColumn(name = "event_id", nullable = false),

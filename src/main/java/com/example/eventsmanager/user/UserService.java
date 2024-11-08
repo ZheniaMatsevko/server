@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -32,18 +33,31 @@ public class UserService implements IUserService {
         this.passwordEncoder=passwordEncoder;
         this.eventRepository=eventRepository;
     }
+    @Override
     @Transactional
-    public UserDto createUser(UserDto user) {
-        log.info("Creating user");
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        UserEntity createdUser = userRepository.save(IUserMapper.INSTANCE.dtoToEntity(user));
-        //ImagesManager.createFolderForUser(createdUser.getId());
-        log.info("User created successfully.");
-        return IUserMapper.INSTANCE.entityToDto(createdUser);
+    public UserDto createUser(UserDto user, MultipartFile file) {
+
+        try {
+            log.info("Creating user");
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            UserEntity createdUser = userRepository.save(IUserMapper.INSTANCE.dtoToEntity(user));
+            ImagesManager.createFolderForUser(createdUser.getId());
+            if (file != null) {
+                String imagePath = ImagesManager.saveProfileImage(file, createdUser.getId());
+                userRepository.updateImageUrl(user.getId(), imagePath);
+                createdUser.setProfileImageUrl(imagePath);
+            }
+            log.info("User created successfully.");
+            return IUserMapper.INSTANCE.entityToDto(createdUser);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
-    public UserDto updateUser(UserDto user) {
+    public UserDto updateUser(UserUpdateDto user, MultipartFile file) {
         Optional<UserEntity> optional = userRepository.findById(user.getId());
         if (optional.isPresent()) {
             UserEntity userEntity = optional.get();
@@ -59,7 +73,18 @@ public class UserService implements IUserService {
             userEntity.setUsername(user.getUsername());
             UserEntity editedUser = userRepository.save(userEntity);
             log.info("Updated user with id " + editedUser.getId());
-            return IUserMapper.INSTANCE.entityToDto(editedUser);
+            try {
+                if (file != null) {
+                    String imagePath = ImagesManager.saveProfileImage(file, editedUser.getId());
+                    userRepository.updateImageUrl(editedUser.getId(), imagePath);
+                    editedUser.setProfileImageUrl(imagePath);
+                }
+                log.info("User edited successfully.");
+                return IUserMapper.INSTANCE.entityToDto(editedUser);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
         } else {
             throw new EntityNotFoundException("User not found for editing");
         }
@@ -77,28 +102,17 @@ public class UserService implements IUserService {
 
     @Override
     public void deleteUser(Long userId) {
-        //try {
+        try {
             if (userRepository.existsById(userId)) {
                 userRepository.deleteById(userId);
                 log.info("Deleted user with ID: {}", userId);
-                //ImagesManager.deleteUserFolder(userId);
+                ImagesManager.deleteUserFolder(userId);
             } else {
                 log.warn("User not found for deletion with ID: {}", userId);
             }
-        /*UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
-        // Remove user from all related events' participant lists
-        for (EventEntity event : user.getBookedEvents()) {
-            event.getParticipants().remove(user);
-            eventRepository.save(event);
+        } catch (IOException exception) {
+            log.error("Failed to delete a user folder");
         }
-
-        userRepository.delete(user);*/
-
-        //} catch (IOException exception) {
-           // log.error("Failed to delete a user folder");
-        //}
     }
 
     @Transactional(propagation = Propagation.REQUIRED, readOnly = true, noRollbackFor = Exception.class)

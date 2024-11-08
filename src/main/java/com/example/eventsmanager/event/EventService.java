@@ -1,5 +1,6 @@
 package com.example.eventsmanager.event;
 
+import com.example.eventsmanager.event.address.IAddressMapper;
 import com.example.eventsmanager.user.IUserMapper;
 import com.example.eventsmanager.user.IUserRepository;
 import com.example.eventsmanager.user.UserDto;
@@ -34,68 +35,68 @@ public class EventService implements IEventService {
     @Override
     @Transactional
     public EventDto addEvent(EventDto event, MultipartFile file) {
-        //try {
+        try {
             log.info("Creating event");
             EventEntity createdEvent = eventRepository.save(IEventMapper.INSTANCE.dtoToEntity(event));
-            /*if (file != null) {
-                String imagePath = ImagesManager.saveEventImage(file, event.getOrganiser().getId(), createdEvent.getId());
-                eventRepository.updateImageUrl(createdEvent.getId(), imagePath);
+            if(file!=null && !file.isEmpty()){
+                String imagePath= ImagesManager.saveEventImage(file,event.getOrganiser().getId(),createdEvent.getId());
+                eventRepository.updateImageUrl(createdEvent.getId(),imagePath);
                 createdEvent.setImageUrl(imagePath);
-            }*/
+            }
             log.info("Event created successfully.");
             return IEventMapper.INSTANCE.entityToDto(createdEvent);
-        /*} catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
-        }*/
+        }
     }
 
     @Transactional
     @Override
     public EventDto updateEvent(EventDto event, MultipartFile file) {
         Optional<EventEntity> optional = eventRepository.findById(event.getId());
-        if (optional.isPresent()) {
+        if(optional.isPresent()){
             EventEntity eventEntity = optional.get();
             eventEntity.setCapacity(event.getCapacity());
             eventEntity.setDescription(event.getDescription());
             eventEntity.setCaption(event.getCaption());
-            eventEntity.setAddress(event.getAddress());
+            eventEntity.setAddress(IAddressMapper.INSTANCE.dtoToEntity(event.getAddress()));
             eventEntity.setDateTime(event.getDateTime());
             eventEntity.setPrice(event.getPrice());
             eventEntity.setOnline(event.isOnline());
             EventEntity editedEvent = eventRepository.save(eventEntity);
-            log.info("Updating event with id " + editedEvent.getId());
-            //try {
-                /*if (file != null) {
-                    String imagePath = ImagesManager.saveEventImage(file, event.getOrganiser().getId(), editedEvent.getId());
-                    eventRepository.updateImageUrl(editedEvent.getId(), imagePath);
+            log.info("Updating event with id "+editedEvent.getId());
+            try {
+                if(file!=null && !file.isEmpty()){
+                    String imagePath= ImagesManager.saveEventImage(file,event.getOrganiser().getId(),editedEvent.getId());
+                    eventRepository.updateImageUrl(editedEvent.getId(),imagePath);
                     editedEvent.setImageUrl(imagePath);
-                }*/
+                }
                 log.info("Event edited successfully.");
                 return IEventMapper.INSTANCE.entityToDto(editedEvent);
-            /*} catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
-            }*/
-        } else {
+            }
+        }else{
             throw new EntityNotFoundException("Event not found for editing");
         }
     }
 
     @Override
     public void deleteEvent(Long eventId) {
-        //try {
+        try{
             if (eventRepository.existsById(eventId)) {
                 Optional<EventEntity> event = eventRepository.findById(eventId);
                 eventRepository.deleteById(eventId);
                 log.info("Deleted event with ID: {}", eventId);
-               // ImagesManager.deleteImage(event.get().getImageUrl());
+                ImagesManager.deleteImage(event.get().getImageUrl());
             } else {
                 log.warn("Event not found for deletion with ID: {}", eventId);
             }
-        /*} catch (IOException exception) {
+        }catch (IOException exception){
             log.error("Failed to delete event image");
-        }*/
+        }
     }
 
     @Override

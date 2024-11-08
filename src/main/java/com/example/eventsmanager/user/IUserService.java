@@ -1,11 +1,12 @@
 package com.example.eventsmanager.user;
 
 import com.example.eventsmanager.utils.ChangePasswordDto;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface IUserService {
-    UserDto createUser(UserDto user);
+    UserDto createUser(UserDto user, MultipartFile file);
 
-    UserDto updateUser(UserDto user);
+    UserDto updateUser(UserUpdateDto user, MultipartFile file);
 
     void deleteUser(Long userId);
 

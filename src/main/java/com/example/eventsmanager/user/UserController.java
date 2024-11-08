@@ -4,16 +4,23 @@ import com.example.eventsmanager.exceptions.ExceptionHelper;
 import com.example.eventsmanager.exceptions.InvalidOldPasswordException;
 import com.example.eventsmanager.utils.ChangePasswordRequestDto;
 import com.example.eventsmanager.utils.IChangePasswordMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
 import jakarta.validation.ValidationException;
+import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.Set;
 
 @Slf4j
 @RestController
@@ -27,26 +34,54 @@ public class UserController {
     }
 
     @PostMapping("/new")
-    public UserRequestDto createUser(@RequestBody @Valid UserRequestDto user, BindingResult bindingResult) {
+    public UserRequestDto createUser(@RequestPart(value = "file", required = false) MultipartFile file,
+                                             @RequestPart("user") @Valid String userJson, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String message = ExceptionHelper.formErrorMessage(bindingResult);
             throw new ValidationException(message);
         }
-        UserDto createdUser = userService.createUser(IUserMapper.INSTANCE.requestDtoToDto(user));
-        log.info("User created with ID: {}", createdUser.getId());
-        return IUserMapper.INSTANCE.dtoToRequestDto(createdUser);
+
+        try {
+            UserRequestDto userDto = new ObjectMapper().readValue(userJson, UserRequestDto.class);
+            Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+            Set<ConstraintViolation<UserRequestDto>> violations = validator.validate(userDto);
+
+            if (!violations.isEmpty()) {
+                String message = ExceptionHelper.formErrorMessage(violations);
+                throw new javax.validation.ValidationException(message);
+            }else{
+                UserDto createdUser = userService.createUser(IUserMapper.INSTANCE.requestDtoToDto(userDto),file);
+                return IUserMapper.INSTANCE.dtoToRequestDto(createdUser);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @PutMapping("/{id}")
-    public UserRequestDto updateUser(@PathVariable Long id, @RequestBody @Valid UserRequestDto user, BindingResult bindingResult) {
+    public UserRequestDto updateUser(@PathVariable Long id,@RequestPart(value = "file", required = false) MultipartFile file,
+                                     @RequestPart("user") @Valid String userJson, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String message = ExceptionHelper.formErrorMessage(bindingResult);
             throw new ValidationException(message);
         }
-        user.setId(id);
-        UserDto updatedUser = userService.updateUser(IUserMapper.INSTANCE.requestDtoToDto(user));
-        log.info("User updated with ID: {}", updatedUser.getId());
-        return IUserMapper.INSTANCE.dtoToRequestDto(updatedUser);
+        try {
+            UserUpdateDto userUpdateRequestDto = new ObjectMapper().readValue(userJson, UserUpdateDto.class);
+            Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+            Set<ConstraintViolation<UserUpdateDto>> violations = validator.validate(userUpdateRequestDto);
+
+            if (!violations.isEmpty()) {
+                String message = ExceptionHelper.formErrorMessage(violations);
+                throw new javax.validation.ValidationException(message);
+            }else{
+                userUpdateRequestDto.setId(id);
+                UserDto createdUser = userService.updateUser(userUpdateRequestDto,file);
+                return IUserMapper.INSTANCE.dtoToRequestDto(createdUser);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @DeleteMapping("/{id}")

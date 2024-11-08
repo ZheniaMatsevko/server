@@ -29,7 +29,7 @@ public class EventController {
 
     private final EventService eventService;
 
-    @PostMapping
+    @PostMapping("/new")
     public EventRequestDto createEvent(@RequestPart(value = "file", required = false) MultipartFile file,
                                        @RequestPart("event") @Valid String eventJson, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -45,9 +45,7 @@ public class EventController {
                 String message = ExceptionHelper.formErrorMessage(violations);
                 throw new javax.validation.ValidationException(message);
             }else{
-                log.info("Creating an event with ID: {}", eventDto.getId());
                 EventDto createdEvent = eventService.addEvent(IEventMapper.INSTANCE.requestDtoToDto(eventDto),file);
-                log.info("Event created with ID: {}", createdEvent.getId());
                 return IEventMapper.INSTANCE.dtoToRequestDto(createdEvent);
             }
         } catch (JsonProcessingException e) {
@@ -71,10 +69,8 @@ public class EventController {
                 String message = ExceptionHelper.formErrorMessage(violations);
                 throw new javax.validation.ValidationException(message);
             }else{
-                log.info("Editing event with ID: {}", id);
                 eventDto.setId(id);
                 EventDto editedEvent = eventService.updateEvent(IEventMapper.INSTANCE.requestDtoToDto(eventDto),file);
-                log.info("Event edited with ID: {}", editedEvent.getId());
                 return IEventMapper.INSTANCE.dtoToRequestDto(editedEvent);
             }
         } catch (JsonProcessingException e) {

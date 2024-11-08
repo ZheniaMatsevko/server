@@ -30,4 +30,6 @@ public class UserRequestDto {
     @NotBlank
     @Size(max = 50, message = "Lastname length must be less than 50 characters")
     private String lastname;
+
+    private String profileImageUrl;
 }

@@ -1,5 +1,6 @@
 package com.example.eventsmanager.event;
 
+import com.example.eventsmanager.event.address.AddressDto;
 import com.example.eventsmanager.review.ReviewRequestDto;
 import com.example.eventsmanager.user.UserDto;
 import com.example.eventsmanager.user.UserRequestDto;
@@ -35,16 +36,14 @@ public class EventRequestDto {
     @Min(value = 0, message = "Event price must be 0 or more")
     private float price;
 
-    @NotBlank
     private String description;
+
+    private AddressDto address;
 
     private boolean online;
 
     @Min(value = 1, message = "Event capacity must be 1 or more")
     private int capacity;
-
-    @NotBlank
-    private String address;
 
     @NotNull
     private UserRequestDto organiser;
