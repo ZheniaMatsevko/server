@@ -1,21 +1,24 @@
 package com.example.eventsmanager.service;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.example.eventsmanager.event.*;
-import com.example.eventsmanager.user.UserEntity;
+import com.example.eventsmanager.event.EventDto;
+import com.example.eventsmanager.event.EventEntity;
+import com.example.eventsmanager.event.EventService;
+import com.example.eventsmanager.event.IEventRepository;
 import com.example.eventsmanager.user.IUserRepository;
-import com.example.eventsmanager.utils.ImagesManager;
+import com.example.eventsmanager.user.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class EventServiceTest {
 
@@ -53,7 +56,7 @@ class EventServiceTest {
     }
 
     @Test
-    void testAddEvent_Success() throws IOException {
+    void testAddEvent_Success() {
         when(eventRepository.save(any(EventEntity.class))).thenReturn(eventEntity);
         when(file.isEmpty()).thenReturn(true); // Assume no file is uploaded
 
@@ -65,7 +68,7 @@ class EventServiceTest {
     }
 
     @Test
-    void testUpdateEvent_Success() throws IOException {
+    void testUpdateEvent_Success() {
         when(eventRepository.findById(anyLong())).thenReturn(Optional.of(eventEntity));
         when(eventRepository.save(any(EventEntity.class))).thenReturn(eventEntity);
         when(file.isEmpty()).thenReturn(true);
@@ -82,7 +85,7 @@ class EventServiceTest {
     }
 
     @Test
-    void testDeleteEvent_Success() throws IOException {
+    void testDeleteEvent_Success() {
         when(eventRepository.existsById(anyLong())).thenReturn(true);
         when(eventRepository.findById(anyLong())).thenReturn(Optional.of(eventEntity));
 

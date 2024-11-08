@@ -1,13 +1,10 @@
 package com.example.eventsmanager.user;
 
-import com.example.eventsmanager.event.EventEntity;
-import com.example.eventsmanager.event.IEventRepository;
 import com.example.eventsmanager.exceptions.InvalidOldPasswordException;
 import com.example.eventsmanager.exceptions.InvalidUserDataException;
 import com.example.eventsmanager.utils.ChangePasswordDto;
 import com.example.eventsmanager.utils.ImagesManager;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,14 +21,12 @@ import java.util.Optional;
 public class UserService implements IUserService {
 
     private final IUserRepository userRepository;
-    private final IEventRepository eventRepository;
 
     private final PasswordEncoder passwordEncoder;
     @Autowired
-    public UserService(IUserRepository userRepository, PasswordEncoder passwordEncoder, IEventRepository eventRepository) {
+    public UserService(IUserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder=passwordEncoder;
-        this.eventRepository=eventRepository;
     }
     @Override
     @Transactional
